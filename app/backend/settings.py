@@ -17,8 +17,7 @@ from dotenv import load_dotenv
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
 # Connect the path with your '.env' file name
-load_dotenv(os.path.join(BASEDIR, '../.env'))
-
+load_dotenv(os.path.join(BASEDIR, '../../.env.dev'))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,13 +27,14 @@ TEMPLATES_DIRS = os.path.join(BASE_DIR,'templates')
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-%vw2gg%$e+r66!jy8@_o!^ie%b1^rb9ab0oqbrytkg9q@3v)z%"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = int(os.environ.get("DEBUG", default=0))
 
-ALLOWED_HOSTS = []
-
+# 'DJANGO_ALLOWED_HOSTS' should be a single string of hosts with a space between each.
+# For example: 'DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]'
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
 # Application definition
 
@@ -93,8 +93,12 @@ WSGI_APPLICATION = "backend.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": os.environ.get("SQL_ENGINE", "django.db.backends.sqlite3"),
+        'NAME': os.environ.get("SQL_DATABASE",BASE_DIR / "db.sqlite3"),
+        'USER': os.environ.get("POSTGRES_USER", "admin"),
+        'PASSWORD': os.environ.get("POSTGRES_PASSWORD", "admin"),
+        'HOST': os.environ.get("SQL_HOST", "127.0.0.1"),
+        'PORT': os.environ.get("SQL_PORT", 5432),
     }
 }
 
@@ -149,7 +153,14 @@ CSRF_COOKIE_HTTPONLY = False
 
 # Locally disable CORS 
 # TODO: Add code here to disable if not running locally
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True # If this is used then `CORS_ALLOWED_ORIGINS` will not have any effect
+CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:3030',
+# ] # If this is used, then not need to use `CORS_ALLOW_ALL_ORIGINS = True`
+# CORS_ALLOWED_ORIGIN_REGEXES = [
+#     'http://localhost:3030',
+# ]
 
 ### Martor
 
@@ -235,3 +246,28 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.getenv("EMAIL_USERNAME")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASSWORD")
 EMAIL_RECIPIENT = os.getenv("EMAIL_RECIPIENT")
+
+### HTTPS Proxy
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+### LOGGING
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+    },
+}

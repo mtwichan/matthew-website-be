@@ -1,5 +1,3 @@
-from django.views import generic
-
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
@@ -16,10 +14,14 @@ def post_list_all(request):
             
             amount: int = request.query_params.get("amount")
             order: str = request.query_params.get("order")
-            
+            search: str = request.query_params.get("search")
+
             if order:
                 data = data.order_by("-{order}".format(order=order))
             
+            if search:
+                data = data.filter(description__contains=search)
+
             if amount:
                 data = data[:int(amount)]
 

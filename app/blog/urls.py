@@ -1,5 +1,5 @@
 from . import views
-from django.urls import include, path, re_path
+from django.urls import path
 
 urlpatterns = [
     path("api/blog/", views.post_list_all, name="blog_list_all"), # POST/GET
