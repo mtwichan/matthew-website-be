@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
@@ -6,6 +7,7 @@ from .models import Project
 from .serializers import *
 
 # Create your views here.
+# TODO: add error handling
 @api_view(['GET', 'POST'])
 def project_list_all(request):
     if request.method == "GET":
@@ -14,14 +16,21 @@ def project_list_all(request):
         amount: int = request.query_params.get("amount")
         order: str = request.query_params.get("order")
         search: str = request.query_params.get("search")
-                
+        page: int = request.query_params.get("page")
+
         if order:
             data = data.order_by("-{order}".format(order=order))
 
         if search:
             data = data.filter(description__contains=search)
         
-        if amount:
+        if page:
+            paginator = Paginator(data, 4)
+            if paginator.num_pages < int(page):
+                data = []
+            else:
+                data = paginator.page(page)
+        elif amount:
             data = data[:int(amount)]
 
         serializer = ProjectSerializer(data, context={'request': request}, many=True)
