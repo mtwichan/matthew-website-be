@@ -12,7 +12,7 @@ from .serializers import *
 def post_list_all(request):
     if request.method == "GET":
         try:
-            data = Post.objects.all()
+            data = Post.objects.filter(status=1)
             
             amount: int = request.query_params.get("amount")
             order: str = request.query_params.get("order")
@@ -26,7 +26,7 @@ def post_list_all(request):
                 data = data.filter(description__contains=search)
 
             if page:
-                paginator = Paginator(data, 4)
+                paginator = Paginator(data, 5)
                 if paginator.num_pages < int(page):
                     data = []
                 else:

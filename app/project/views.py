@@ -11,7 +11,7 @@ from .serializers import *
 @api_view(['GET', 'POST'])
 def project_list_all(request):
     if request.method == "GET":
-        data = Project.objects.all()
+        data = Project.objects.filter(status=1)
 
         amount: int = request.query_params.get("amount")
         order: str = request.query_params.get("order")
@@ -25,14 +25,13 @@ def project_list_all(request):
             data = data.filter(description__contains=search)
         
         if page:
-            paginator = Paginator(data, 4)
+            paginator = Paginator(data, 6)
             if paginator.num_pages < int(page):
                 data = []
             else:
                 data = paginator.page(page)
         elif amount:
             data = data[:int(amount)]
-
         serializer = ProjectSerializer(data, context={'request': request}, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
